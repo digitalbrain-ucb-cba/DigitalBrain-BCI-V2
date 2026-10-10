@@ -1,68 +1,93 @@
-from sklearn.ensemble import RandomForestClassifier
-import pandas as pd
+import subprocess as sp
+import threading
 import pickle as pkl
-#from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split#, cross_val_score, GridSearchCV
-#from sklearn.tree import DecisionTreeClassifier
-#from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
-csv1=""
-csv2=""
-nombremodelo="funka.pkl"
+from ugot import ugot
+from typing import Any, List
 
-df0 = pd.read_csv(csv1, encoding="latin-1")
-df1 = pd.read_csv(csv2, encoding="latin-1")
-df = pd.concat([df0, df1])
-df.drop(columns=["Unnamed: 0"], inplace=True)
-X = df.iloc[:,0:16]
-y = df.iloc[:,16]
+import numpy as np
+import pandas as pd
 
+# ip="192.168.120.121"
+# robot=ugot.UGOT()
+# robot.initialize(ip)
 
+nombremodelo="[insert .pkl file name]"
+datosA = ["800"] * 125
+datosB = ["800"] * 125
+datosC = ["800"] * 125
+datosD = ["800"] * 125
+n=125
+procesar = -1
+Hz = np.fft.fftfreq(n, 1 / 125)
+with open(nombremodelo, "rb") as f:
+     rf = pkl.load(f)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.30, random_state = 42)
+def predict(datosA,datosB,datosC,datosD):
+    dfA = list(map(float, datosA))
+    dfB = list(map(float, datosB))
+    dfC = list(map(float, datosC))
+    dfD = list(map(float, datosD))
+    dfA = np.abs(np.fft.fft(dfA)) ** 2
+    dfB = np.abs(np.fft.fft(dfB)) ** 2
+    dfC = np.abs(np.fft.fft(dfC)) ** 2
+    dfD = np.abs(np.fft.fft(dfD)) ** 2
+    ThetaA=np.sum(dfA[(Hz >= 4) & (Hz < 8)])
+    ThetaB=np.sum(dfB[(Hz >= 4) & (Hz < 8)])
+    ThetaC=np.sum(dfC[(Hz >= 4) & (Hz < 8)])
+    ThetaD=np.sum(dfD[(Hz >= 4) & (Hz < 8)])
+    AlphaA=np.sum(dfA[(Hz >= 8) & (Hz < 13)])
+    AlphaB=np.sum(dfB[(Hz >= 8) & (Hz < 13)])
+    AlphaC=np.sum(dfC[(Hz >= 8) & (Hz < 13)])
+    AlphaD=np.sum(dfD[(Hz >= 8) & (Hz < 13)])
+    BetaA=np.sum(dfA[(Hz >= 13) & (Hz < 30)])
+    BetaB=np.sum(dfB[(Hz >= 13) & (Hz < 30)])
+    BetaC=np.sum(dfC[(Hz >= 13) & (Hz < 30)])
+    BetaD=np.sum(dfD[(Hz >= 13) & (Hz < 30)])
+    GammaA=np.sum(dfA[(Hz >= 30)])
+    GammaB=np.sum(dfB[(Hz >= 30)])
+    GammaC=np.sum(dfC[(Hz >= 30)])
+    GammaD=np.sum(dfD[(Hz >= 30)])
+    predictData = dict(zip(['ThetaA', 'ThetaB', 'ThetaC', 'ThetaD',
+                          'AlphaA', 'AlphaB', 'AlphaC', 'AlphaD',
+                          'BetaA', 'BetaB', 'BetaC', 'BetaD',
+                          'GammaA', 'GammaB', 'GammaC', 'GammaD'],
+                         [ThetaA, ThetaB, ThetaC, ThetaD,
+                          AlphaA, AlphaB, AlphaC, AlphaD,
+                          BetaA, BetaB, BetaC, BetaD,
+                          GammaA, GammaB, GammaC, GammaD]))
+    df=pd.DataFrame(predictData, index=[0])
+    precision=rf.predict_proba(df)
+    return rf.predict(df)
 
-#rf_model = RandomForestClassifier(random_state=42)
-
-#scores_rf = cross_val_score(rf_model, X_train, y_train, scoring='accuracy', cv=5)
-#print("Cross-validation scores (RF):", scores_rf)
-#print("Mean cross-validation score (RF):", scores_rf.mean())
-#print("Standard deviation of cross-validation scores (RF):", scores_rf.std())
-
-# pruebitaaas
-#param_grid_rf = {
-#    "n_estimators": [50, 100, 200],
-#    "criterion": ["gini", "entropy"],
-#    "max_depth": [2, 3, 4, 5, None],
-#    "min_samples_split": [2, 4, 6, 8],
-#    "min_samples_leaf": [1, 2, 3],
-#}
-
-#el coso ya probado con los mejores parametros
-rf = RandomForestClassifier(
-    criterion="entropy",
-    max_depth=None,
-    min_samples_leaf=1,
-    min_samples_split=6,
-    n_estimators=50,
-    random_state=42
-)
-
-#grid_search_rf = GridSearchCV(
-#    estimator=RandomForestClassifier(random_state=42),
-#    param_grid=param_grid_rf,
-#    cv=5,
-#    scoring="accuracy",
-#    n_jobs=-1
-#)
-
-#grid_search_rf.fit(X_train, y_train)
-
-#print("Best parameters (RF):", grid_search_rf.best_params_)
-#print("Best CV score (RF):", grid_search_rf.best_score_)
-
-#Esto guarda el modelo
-#rf = grid_search_rf.best_estimator_   #con los mejores parametros
-rf.fit(X_train, y_train)
-print(rf.score(X_test, y_test))
-
-with open(nombremodelo, "wb") as f:
-    pkl.dump(rf, f)
+COLOR_VERDE = '\033[92m'
+COLOR_ROJO = '\033[91m'
+RESET = '\033[0m'
+while True:
+    process = sp.Popen(["ConDumpAuto.exe"], stdout=sp.PIPE, text=True, shell=False)
+    for line in iter(process.stdout.readline, ""):
+        if line.startswith("-") or line[0].isdigit():
+            line = line.replace('\r', '').replace('\n', '')
+            current = line.split(",")
+            procesar = procesar + 1
+            datosA[procesar]=current[0]
+            datosB[procesar]=current[1]
+            datosC[procesar]=current[2]
+            datosD[procesar]=current[3]
+        if procesar == 64:
+            resp1=predict(datosA,datosB,datosC,datosD)[0]
+            if resp1 == "Adelante(Der)":
+                print(f"{COLOR_VERDE}ADELANTE{RESET}")
+                #robot.spider_move_speed(0,5)
+            else:
+                print(f"{COLOR_ROJO}ATRAS{RESET}")
+                #robot.spider_move_speed(1,5)
+        elif procesar == 124:
+            resp1=predict(datosA,datosB,datosC,datosD)[0]
+            if resp1 == "Adelante(Der)":
+                print(f"{COLOR_VERDE}ADELANTE{RESET}")
+                #robot.spider_move_speed(0,5)
+            else:
+                print(f"{COLOR_ROJO}ATRAS{RESET}")
+                #robot.spider_move_speed(1,5)
+  
+            procesar = -1
