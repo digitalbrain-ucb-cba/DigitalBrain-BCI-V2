@@ -11,11 +11,11 @@ nombremodelo="ModelMotores.pkl"
 df0 = pd.read_csv(csv1, encoding="latin-1")
 df1 = pd.read_csv(csv2, encoding="latin-1")
 df2 = pd.read_csv(csv3, encoding="latin-1")
-dfList = [df0,df1,d2]
+dfList = [df0,df1,df2]
 df = pd.concat(dfList)
 df.drop(columns=["Unnamed: 0"], inplace=True)
-X = df.iloc[:,0:16]
-y = df.iloc[:,16]
+X = df.iloc[:,0:12]
+y = df.iloc[:,12]
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 7)
 

@@ -44,18 +44,12 @@ def predict(datosA,datosB,datosC,datosD):
     BetaB=np.sum(dfB[(Hz >= 13) & (Hz < 30)])
     BetaC=np.sum(dfC[(Hz >= 13) & (Hz < 30)])
     BetaD=np.sum(dfD[(Hz >= 13) & (Hz < 30)])
-    GammaA=np.sum(dfA[(Hz >= 30)])
-    GammaB=np.sum(dfB[(Hz >= 30)])
-    GammaC=np.sum(dfC[(Hz >= 30)])
-    GammaD=np.sum(dfD[(Hz >= 30)])
     predictData = dict(zip(['ThetaA', 'ThetaB', 'ThetaC', 'ThetaD',
                           'AlphaA', 'AlphaB', 'AlphaC', 'AlphaD',
-                          'BetaA', 'BetaB', 'BetaC', 'BetaD',
-                          'GammaA', 'GammaB', 'GammaC', 'GammaD'],
+                          'BetaA', 'BetaB', 'BetaC', 'BetaD'],
                          [ThetaA, ThetaB, ThetaC, ThetaD,
                           AlphaA, AlphaB, AlphaC, AlphaD,
-                          BetaA, BetaB, BetaC, BetaD,
-                          GammaA, GammaB, GammaC, GammaD]))
+                          BetaA, BetaB, BetaC, BetaD]))
     df = pd.DataFrame(predictData, index=[0])
 
     probabilidades = rf.predict_proba(df)[0]
