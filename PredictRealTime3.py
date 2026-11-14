@@ -12,6 +12,7 @@ import pandas as pd
 # robot.initialize(ip)
 
 nombremodelo="[insert .pkl file name]"
+umbral = 0.67
 datosA = ["800"] * 125
 datosB = ["800"] * 125
 datosC = ["800"] * 125
@@ -55,43 +56,63 @@ def predict(datosA,datosB,datosC,datosD):
                           AlphaA, AlphaB, AlphaC, AlphaD,
                           BetaA, BetaB, BetaC, BetaD,
                           GammaA, GammaB, GammaC, GammaD]))
-    df=pd.DataFrame(predictData, index=[0])
-    precision=rf.predict_proba(df)
-    return rf.predict(df)
+    df = pd.DataFrame(predictData, index=[0])
+
+    probabilidades = rf.predict_proba(df)[0]
+    indice = np.argmax(probabilidades)
+
+    if probabilidades[indice] < umbral:
+        return "NADA"
+
+    return rf.classes_[indice]
 
 COLOR_VERDE = '\033[92m'
 COLOR_ROJO = '\033[91m'
 RESET = '\033[0m'
 while True:
-    process = sp.Popen(["ConDumpAuto.exe"], stdout=sp.PIPE, text=True, shell=False)
+    process = sp.Popen(
+        ["ConDumpAuto.exe"],
+        stdout=sp.PIPE,
+        text=True,
+        shell=False
+    )
+
+    procesar = -1
+
     for line in iter(process.stdout.readline, ""):
+        line = line.strip()
+
+        if not line:
+            continue
+
         if line.startswith("-") or line[0].isdigit():
-            line = line.replace('\r', '').replace('\n', '')
             current = line.split(",")
+
+            if len(current) < 4:
+                continue
+
             procesar = procesar + 1
-            datosA[procesar]=current[0]
-            datosB[procesar]=current[1]
-            datosC[procesar]=current[2]
-            datosD[procesar]=current[3]
-        if procesar == 64:
-            resp1=predict(datosA,datosB,datosC,datosD)[0]
-            if resp1 == "Adelante(Der)":
-                print(f"{COLOR_VERDE}ADELANTE{RESET}")
-                #robot.spider_move_speed(0,5)
-            if resp1 == "Atras(Izq)":
-                print(f"{COLOR_ROJO}ATRAS{RESET}")
-                #robot.spider_move_speed(1,5)
-            else:
-                print(f"NADA")
-                #robot.spider_move_speed(1,5)
-        elif procesar == 124:
-            if resp1 == "Adelante(Der)":
-                print(f"{COLOR_VERDE}ADELANTE{RESET}")
-                #robot.spider_move_speed(0,5)
-            if resp1 == "Atras(Izq)":
-                print(f"{COLOR_ROJO}ATRAS{RESET}")
-                #robot.spider_move_speed(1,5)
-            else:
-                print(f"NADA")
-                #robot.spider_move_speed(1,5)
-            procesar = -1
+            datosA[procesar] = current[0]
+            datosB[procesar] = current[1]
+            datosC[procesar] = current[2]
+            datosD[procesar] = current[3]
+
+            if procesar == 124:
+                resp1 = predict(datosA, datosB, datosC, datosD)
+
+                if resp1 == "Adelante(Der)":
+                    print(f"{COLOR_VERDE}ADELANTE{RESET}")
+                    # robot.spider_move_speed(0, 5)
+
+                elif resp1 == "Atras(Izq)":
+                    print(f"{COLOR_ROJO}ATRAS{RESET}")
+                    # robot.spider_move_speed(1, 5)
+
+                else:
+                    print("NADA")
+                    # Aquí iría la orden para detener el robot.
+
+                procesar = -1
+
+    process.stdout.close()
+    process.wait()
