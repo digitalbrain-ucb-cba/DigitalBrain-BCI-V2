@@ -38,10 +38,6 @@ BetaA = []
 BetaB = []
 BetaC = []
 BetaD = []
-GammaA = []
-GammaB = []
-GammaC = []
-GammaD = []
 
 for currentfile in file_list:
     with open(currentfile, encoding="utf-8") as file:
@@ -93,10 +89,6 @@ for currentfile in file_list:
             BetaB.append(np.sum(dfB[(Hz>=13) & (Hz<30)]))
             BetaC.append(np.sum(dfC[(Hz>=13) & (Hz<30)]))
             BetaD.append(np.sum(dfD[(Hz>=13) & (Hz<30)]))
-            GammaA.append(np.sum(dfA[(Hz>=30)]))
-            GammaB.append(np.sum(dfB[(Hz>=30)]))
-            GammaC.append(np.sum(dfC[(Hz>=30)]))
-            GammaD.append(np.sum(dfD[(Hz>=30)]))
             labels.append(label)
             sl+=step
             sr+=step
@@ -109,7 +101,6 @@ pandaData = dict(zip(['ThetaA', 'ThetaB', 'ThetaC', 'ThetaD',
                       [ThetaA, ThetaB, ThetaC, ThetaD,
                        AlphaA, AlphaB, AlphaC, AlphaD,
                        BetaA, BetaB, BetaC, BetaD,
-                       GammaA, GammaB, GammaC, GammaD,
                        labels]))
 
 df = pd.DataFrame(pandaData)
