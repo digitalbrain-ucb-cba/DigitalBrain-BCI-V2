@@ -96,7 +96,6 @@ for currentfile in file_list:
 pandaData = dict(zip(['ThetaA', 'ThetaB', 'ThetaC', 'ThetaD',
                       'AlphaA', 'AlphaB', 'AlphaC', 'AlphaD',
                       'BetaA', 'BetaB', 'BetaC', 'BetaD',
-                      'GammaA', 'GammaB', 'GammaC', 'GammaD',
                       'label'],
                       [ThetaA, ThetaB, ThetaC, ThetaD,
                        AlphaA, AlphaB, AlphaC, AlphaD,
